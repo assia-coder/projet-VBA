@@ -4,7 +4,7 @@ build_userforms.py - Application_Prevision.xlsx -> Application_Prevision.xlsm  (
   1. ouvre le .xlsx genere par generate_app.py et l'enregistre en .xlsm (vrai format macro)
   2. injecte les modules VBA (dossier vba/)
   3. cree les UserForms : frmLogin + un formulaire CRUD par table (colonnes lues dans les tableaux)
-  4. pose les boutons (formes colorees) sur Accueil et Gestion
+  4. pose les boutons (formes colorees, avec marge) : Accueil, Gestion et bouton « Accueil » sur toutes les feuilles
   5. ecrit les evenements du classeur (ouverture / activation / enregistrement / fermeture)
   6. verrouille le classeur (seule "Accueil" visible) et enregistre
 
@@ -40,7 +40,9 @@ PWD = G.PASSWORD
 REQUIRED = ["ModuleAuth", "ModuleCRUD", "ModuleFilters", "ModuleNavigation", "ModuleProtection"]
 
 # Colonnes jamais saisies a la main dans les formulaires (calculees / renseignees par VBA)
-AUTO_COLS = {"source", "saisi_le", "date_ajout", "nb_produits"}
+# (prix_moyen, weekday, month, year = formules Excel ; sell_price de T_Prix = formule, sans formulaire)
+AUTO_COLS = {"source", "saisi_le", "date_ajout", "nb_produits",
+             "prix_moyen", "weekday", "month", "year", "sell_price"}
 
 # nom du formulaire -> (feuille, colonnes cles)
 CRUD_FORMS = {
@@ -48,7 +50,6 @@ CRUD_FORMS = {
     "Categories":   ("T_Categories",   ["cat_id"]),
     "Magasins":     ("T_Magasins",     ["store_id"]),
     "Transactions": ("T_Transactions", ["date", "store_id", "item_id"]),
-    "Prix":         ("T_Prix",         ["date", "store_id", "item_id"]),
     "Calendrier":   ("T_Calendrier",   ["date"]),
 }
 
@@ -102,17 +103,26 @@ def rgb(hexstr: str) -> int:
     return r + g * 256 + b * 65536
 
 
-def add_shape_button(ws, anchor, caption, macro, bg, fg, size=11):
+def add_shape_button(ws, anchor, caption, macro, bg, fg, size=11, pad=4):
+    """Bouton = forme coloree posee sur la zone `anchor`, reduite de `pad` points de chaque cote
+    (-> espace visible entre deux boutons voisins et par rapport aux cellules colorees)."""
+    name = f"btn_{macro}_{anchor}"
     for i in range(ws.Shapes.Count, 0, -1):          # evite les doublons si relance
         try:
-            if ws.Shapes(i).Name == f"btn_{macro}_{anchor}":
+            if ws.Shapes(i).Name == name:
                 ws.Shapes(i).Delete()
         except Exception:
             pass
     rng = ws.Range(anchor)
-    shp = ws.Shapes.AddShape(1, rng.Left, rng.Top, rng.Width, rng.Height)   # 1 = rectangle
-    shp.Name = f"btn_{macro}_{anchor}"
+    p = min(pad, rng.Height / 4, rng.Width / 4)
+    shp = ws.Shapes.AddShape(5, rng.Left + p, rng.Top + p, rng.Width - 2 * p, rng.Height - 2 * p)  # 5 = arrondi
+    shp.Name = name
+    try:
+        shp.Adjustments.Item(1).Value = 0.18
+    except Exception:
+        pass
     shp.OnAction = macro
+    shp.Placement = 2                                # deplace sans redimensionner (xlMove)
     shp.Fill.ForeColor.RGB = rgb(bg)
     shp.Line.ForeColor.RGB = rgb(bg)
     try:
@@ -135,12 +145,15 @@ def add_shape_button(ws, anchor, caption, macro, bg, fg, size=11):
 
 
 def add_buttons(wb, sheet_name, specs):
-    ws = wb.Sheets(sheet_name)
-    ws.Activate()
-    for anchor, caption, macro, bg, fg in specs:
-        add_shape_button(ws, anchor, caption, macro, bg, fg)
-    ws.Range("A1").Select()
-    print(f"  + {len(specs)} boutons sur {sheet_name}")
+    try:
+        ws = wb.Sheets(sheet_name)
+        ws.Activate()
+        for anchor, caption, macro, bg, fg in specs:
+            add_shape_button(ws, anchor, caption, macro, bg, fg)
+        ws.Range("A1").Select()
+        print(f"  + {len(specs)} bouton(s) sur {sheet_name}")
+    except Exception as e:
+        print(f"  ! boutons de {sheet_name}: {e}")
 
 
 # ------------------------------------------------------------------ evenements du classeur
@@ -425,8 +438,10 @@ def main():
             build_crud_form(vbproj, name, sheet, headers, keys)
             lo.ShowAutoFilter = False              # aucun filtre manuel : tableaux seuls
 
-        add_buttons(wb, "Accueil", G.ACCUEIL_BUTTONS)
-        add_buttons(wb, "Gestion", G.GESTION_BUTTONS)
+        # Accueil + Gestion + bouton « Accueil » sur toutes les autres feuilles (voir generate_app.BUTTONS_BY_SHEET)
+        for sheet_name, specs in G.BUTTONS_BY_SHEET.items():
+            add_buttons(wb, sheet_name, specs)
+        wb.Sheets("Accueil").Activate()
 
         excel.Calculation = -4105
         excel.CalculateFull()

@@ -5,8 +5,12 @@ Option Explicit
 '  NAVIGATION (macros assignees aux boutons de l'Accueil et de Gestion)
 ' ====================================================================
 
+' Bouton "Accueil" present sur toutes les feuilles
 Public Sub GoHome()
+    On Error Resume Next
     ThisWorkbook.Worksheets(HOME_SHEET).Activate
+    ThisWorkbook.Worksheets(HOME_SHEET).Range("A1").Select
+    On Error GoTo 0
 End Sub
 
 Public Function ShowLoginForm() As Boolean
@@ -58,7 +62,6 @@ Public Sub OpenProduits():     OpenCrudForm "frmProduits":     End Sub
 Public Sub OpenCategories():   OpenCrudForm "frmCategories":   End Sub
 Public Sub OpenMagasins():     OpenCrudForm "frmMagasins":     End Sub
 Public Sub OpenTransactions(): OpenCrudForm "frmTransactions": End Sub
-Public Sub OpenPrix():         OpenCrudForm "frmPrix":         End Sub
 Public Sub OpenCalendrier():   OpenCrudForm "frmCalendrier":   End Sub
 
 Private Sub OpenCrudForm(ByVal formName As String)

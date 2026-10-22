@@ -2,11 +2,12 @@ Attribute VB_Name = "ModuleCRUD"
 Option Explicit
 
 ' ====================================================================
-'  CRUD GENERIQUE utilise par les UserForms (frmProduits, frmPrix, ...)
+'  CRUD GENERIQUE utilise par les UserForms (frmProduits, frmCalendrier, ...)
 '  - Travaille sur le tableau (ListObject) de chaque feuille T_*
 '  - Colonnes retrouvees par NOM d'en-tete (jamais par position)
 '  - Saisies marquees source = MANUEL ; lignes M5 de transactions /
-'    prix / calendrier en lecture seule
+'    calendrier en lecture seule. Les colonnes calculees (prix_moyen,
+'    weekday, month, year) sont des formules recopiees sur chaque nouvelle ligne.
 '  - Les formulaires ne listent que MAX_LIST_ROWS lignes (recherche par cle)
 ' ====================================================================
 
@@ -55,7 +56,7 @@ End Sub
 Private Function Coerce(ByVal header As String, ByVal txt As String) As Variant
     Dim t As String: t = Trim$(txt)
     If t = "" Then
-        If LCase$(header) = "actif" Then Coerce = True Else Coerce = Empty
+        Coerce = Empty
         Exit Function
     End If
     Select Case UCase$(t)
@@ -212,7 +213,7 @@ End Function
 
 Private Function IsM5Locked(ByVal lo As ListObject, ByVal sheetName As String, ByVal tblRow As Long) As Boolean
     Select Case sheetName
-        Case "T_Transactions", "T_Prix", "T_Calendrier"
+        Case "T_Transactions", "T_Calendrier"
             IsM5Locked = (UCase$(CellAt(lo, tblRow, "source")) = "M5")
     End Select
 End Function
@@ -358,18 +359,11 @@ Public Function DeleteRecord(ByVal sheetName As String, ByVal tblRow As Long) As
     Dim n As Long
     Select Case sheetName
         Case "T_Produits"
+            ' un produit lie a des transactions ne peut pas etre supprime (integrite des donnees)
             n = CountIn("T_Transactions", "store_id", CellAt(lo, tblRow, "store_id"), _
                         "item_id", CellAt(lo, tblRow, "item_id"))
             If n > 0 Then
-                If MsgBox("Ce produit possède " & n & " transaction(s) : il sera désactivé " & _
-                          "(actif = FALSE) au lieu d'être supprimé. Continuer ?", _
-                          vbQuestion + vbYesNo) <> vbYes Then Exit Function
-                BeginEdit ws
-                SetByHeader lo, tblRow, "actif", False
-                EndEdit ws
-                Application.Calculate
-                DeleteRecord = True
-                MsgBox "Produit désactivé.", vbInformation
+                MsgBox "Suppression impossible : ce produit possède " & n & " transaction(s).", vbExclamation
                 Exit Function
             End If
         Case "T_Categories"
