@@ -1,0 +1,10 @@
+{
+  "model": "LightGBM",
+  "approach": "Actif",
+  "label": "LightGBM (Actif)",
+  "RMSE": 9.4945,
+  "MAE": 5.9119,
+  "WAPE": 40.16,
+  "model_file": "model_active.joblib",
+  "updated_at": "2026-10-20 00:51"
+}

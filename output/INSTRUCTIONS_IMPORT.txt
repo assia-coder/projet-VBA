@@ -1,0 +1,49 @@
+﻿INSTRUCTIONS D'IMPORT — Application Prévision M5 Walmart
+=========================================================
+
+Étape 1 — Ouvrir le classeur
+  Ouvrez Application_Prevision.xlsx dans Microsoft Excel.
+  Activez les macros si Excel le demande.
+
+Étape 2 — Ouvrir l'éditeur VBA
+  Appuyez sur Alt + F11 pour ouvrir l'éditeur Visual Basic.
+
+Étape 3 — Importer le module principal
+  Dans l'éditeur VBA, clic droit sur votre projet dans l'explorateur
+  de projets → Importer un fichier → sélectionner ModuleApp.bas
+
+Étape 4 — Importer les 4 UserForms
+  Répéter la même opération (clic droit → Importer) pour :
+    forms/frmLancement.frm
+    forms/frmPrevisionMensuelle.frm
+    forms/frmGestionProduits.frm
+    forms/frmMetriques.frm
+
+Étape 5 — Sauvegarder en .xlsm
+  Fichier → Enregistrer sous → Type : Classeur Excel prenant en charge
+  les macros (*.xlsm) → nom : Application_Prevision.xlsm
+
+Étape 6 — Configurer le démarrage automatique
+  Dans l'éditeur VBA, double-cliquer sur "ThisWorkbook" et coller :
+    Private Sub Workbook_Open()
+        frmLancement.Show
+    End Sub
+  Fermer l'éditeur. L'application est prête.
+  Au prochain démarrage, frmLancement s'ouvre automatiquement.
+
+
+REMARQUES
+---------
+- Enregistrez Application_Prevision.xlsm dans ce dossier output/ : les macros
+  lancent Python via ..\excel_bridge.py et relisent les CSV de output/.
+- Les UserForms n'ont pas de fichier .frx : leurs contrôles sont créés à
+  l'ouverture par le code (ModuleApp.AjouterCtl). Un formulaire importé
+  apparaît donc vide dans l'éditeur : c'est normal.
+- Si Excel refuse l'import d'un .frm : Insertion → UserForm, renommez-le
+  (propriété (Name) = frmLancement, etc.), puis collez dans sa fenêtre de
+  code tout le texte du .frm situé APRÈS la ligne "Attribute VB_Exposed = False".
+- Python utilisé : chemin de la cellule PARAMS!B8 (écrit par
+  generate_workbook.py) ; à défaut "py -3", puis "python".
+- Classeur .xlsx régénéré par "python excel_bridge.py all" : il ne contient
+  pas de VBA. Votre .xlsm se met à jour lui-même (ModuleApp.ActualiserClasseur)
+  après chaque entraînement ou prévision lancé depuis les formulaires.

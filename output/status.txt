@@ -1,0 +1,4 @@
+SUCCESS
+Commande 'all' terminee : preprocess.py, train_passive_ml.py, train_active_ml.py, train_prophet.py, compare_all.py, predict_next_30_days.py, generate_workbook.py
+2026-10-20 00:51:39
+164

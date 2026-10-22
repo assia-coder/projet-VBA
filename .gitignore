@@ -1,0 +1,16 @@
+﻿# Ignorer les fichiers temporaires Python
+__pycache__/
+*.py[cod]
+
+# Ignorer tous les fichiers CSV du dossier data
+/data/*.csv
+
+# Ignorer les fichiers temporaires Excel
+~$*.xls*
+
+# Ignorer les environnements Python
+.venv/
+venv/
+
+# Ignorer les fichiers confidentiels
+.env

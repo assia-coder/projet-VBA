@@ -1,0 +1,14 @@
+cle,valeur
+history_first,2011-01-29
+history_last,2016-04-24
+n_series,45
+generated_at,2026-10-21 00:27
+winner_label,LightGBM (Actif)
+winner_rmse,9.4945
+winner_mae,5.9119
+winner_wape,40.16
+winner_updated,2026-10-20 00:51
+test_first,2015-10-28
+test_last,2016-04-24
+forecast_first,2016-04-25
+forecast_last,2016-05-24

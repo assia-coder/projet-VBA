@@ -1,0 +1,351 @@
+excel_bridge.py all - 2026-10-20 00:48:54
+
+##### 00:48:54 - lancement de preprocess.py #####
+======================================================================
+ PREPROCESSING M5 - CA_1 / TX_1 / WI_1 - top 5 produits par catégorie
+======================================================================
+
+>>> Lecture de sales_train_validation.csv (filtrage des 3 magasins)...
+   9147 produits trouvés dans ['CA_1', 'TX_1', 'WI_1'], 1913 jours
+   Séries sélectionnées : 45 (5 par catégorie × 3 catégories × 3 stores)
+store_id  cat_id   
+CA_1      FOODS        5
+          HOBBIES      5
+          HOUSEHOLD    5
+TX_1      FOODS        5
+          HOBBIES      5
+          HOUSEHOLD    5
+WI_1      FOODS        5
+          HOBBIES      5
+          HOUSEHOLD    5
+
+>>> Passage au format long...
+   86,085 lignes
+
+>>> Fusion avec calendar.csv...
+
+>>> Fusion avec sell_prices.csv (lecture par morceaux)...
+   3591 prix manquants complétés (bfill/ffill)
+
+>>> Écriture de series_long.csv...
+   -> C:\Users\monyb\Desktop\anonyme\cours\VBA\demande_forecasting\output\series_long.csv
+
+>>> Écriture de series_excel.xlsx...
+   -> C:\Users\monyb\Desktop\anonyme\cours\VBA\demande_forecasting\output\series_excel.xlsx
+
+>>> Écriture de series_prophet.csv...
+   -> C:\Users\monyb\Desktop\anonyme\cours\VBA\demande_forecasting\output\series_prophet.csv
+
+>>> Création du gabarit metrics_summary.xlsx...
+   -> C:\Users\monyb\Desktop\anonyme\cours\VBA\demande_forecasting\output\metrics_summary.xlsx (vide, rempli par compare_all.py)
+
+>>> Statistiques
+   Nombre de séries : 45
+   Période          : 2011-01-29 -> 2016-04-24 (1913 jours)
+
+   Part de jours à 0 vente (zero_ratio) par magasin :
+     CA_1 : 18.6%
+     TX_1 : 21.7%
+     WI_1 : 18.1%
+
+   Zero ratio par catégorie :
+     FOODS : 8.6%
+     HOBBIES : 28.1%
+     HOUSEHOLD : 21.7%
+
+   Ventes moyennes par catégorie (unités/jour/série) :
+     FOODS : 38.3
+     HOBBIES : 9.2
+     HOUSEHOLD : 9.1
+
+   Top 5 par magasin et par catégorie :
+     CA_1 / FOODS     : FOODS_3_090, FOODS_3_586, FOODS_3_252, FOODS_3_120, FOODS_3_714
+     CA_1 / HOBBIES   : HOBBIES_1_348, HOBBIES_1_371, HOBBIES_1_268, HOBBIES_1_178, HOBBIES_1_256
+     CA_1 / HOUSEHOLD : HOUSEHOLD_1_118, HOUSEHOLD_1_334, HOUSEHOLD_1_535, HOUSEHOLD_1_110, HOUSEHOLD_1_151
+     TX_1 / FOODS     : FOODS_3_586, FOODS_3_090, FOODS_3_555, FOODS_3_252, FOODS_3_587
+     TX_1 / HOBBIES   : HOBBIES_1_371, HOBBIES_1_254, HOBBIES_1_256, HOBBIES_1_348, HOBBIES_1_341
+     TX_1 / HOUSEHOLD : HOUSEHOLD_1_521, HOUSEHOLD_1_334, HOUSEHOLD_1_234, HOUSEHOLD_1_459, HOUSEHOLD_1_303
+     WI_1 / FOODS     : FOODS_3_226, FOODS_3_694, FOODS_3_090, FOODS_3_586, FOODS_3_714
+     WI_1 / HOBBIES   : HOBBIES_1_371, HOBBIES_1_370, HOBBIES_1_278, HOBBIES_1_244, HOBBIES_1_067
+     WI_1 / HOUSEHOLD : HOUSEHOLD_1_327, HOUSEHOLD_1_459, HOUSEHOLD_1_303, HOUSEHOLD_1_389, HOUSEHOLD_1_521
+
+>>> Analyse du top 5 produits par store et par catégorie...
+   -> C:\Users\monyb\Desktop\anonyme\cours\VBA\demande_forecasting\output\top_produits_par_categorie.csv
+
+Preprocessing terminé avec succès.
+
+##### 00:49:11 - lancement de train_passive_ml.py #####
+======================================================================
+ ENTRAÎNEMENT XGBOOST PASSIF
+======================================================================
+
+>>> Chargement de series_long.csv...
+   86,085 lignes, 45 séries
+
+>>> Création des features passives (lags, rolling, calendrier)...
+   Train : 2011-03-25 -> 2015-10-27 (75,510 lignes)
+   Test  : 2015-10-28 -> 2016-04-24 (8,100 lignes)
+
+>>> Entraînement XGBoost...
+
+>>> Prévision sur la période de test...
+   -> C:\Users\monyb\Desktop\anonyme\cours\VBA\demande_forecasting\output\forecasts_passive_ml.csv
+
+>>> Calcul des métriques...
+store_id    MAE  MAPE    RMSE
+     ALL 6.1169 78.06  9.9018
+    CA_1 7.4949 84.46 12.4876
+    TX_1 6.1350 70.77  9.5506
+    WI_1 4.7209 78.50  6.8544
+   -> C:\Users\monyb\Desktop\anonyme\cours\VBA\demande_forecasting\output\metrics_passive_ml.csv
+
+>>> Réentraînement sur tout l'historique et sauvegarde du modèle...
+   Modèle sauvegardé : model_passive.joblib (83,610 lignes, jusqu'au 2016-04-24)
+
+XGBoost passif terminé avec succès.
+
+##### 00:49:26 - lancement de train_active_ml.py #####
+======================================================================
+ ENTRAÎNEMENT LIGHTGBM ACTIF
+======================================================================
+
+>>> Chargement de series_long.csv...
+   86,085 lignes, 45 séries
+
+>>> Création des features passives et externes...
+   22 features : sell_price, price_change_pct, price_rel_mean, snap, has_event, event_type_code, days_to_christmas, is_holiday_week + passives
+   Train : 2011-03-25 -> 2015-10-27 (75,510 lignes)
+   Test  : 2015-10-28 -> 2016-04-24 (8,100 lignes)
+
+>>> Entraînement LightGBM...
+
+>>> Prévision sur la période de test...
+   -> C:\Users\monyb\Desktop\anonyme\cours\VBA\demande_forecasting\output\forecasts_active_ml.csv
+
+>>> Calcul des métriques...
+store_id    MAE  MAPE    RMSE
+     ALL 5.9119 75.31  9.4945
+    CA_1 7.2622 81.03 12.0193
+    TX_1 5.9426 68.73  9.1395
+    WI_1 4.5310 75.77  6.5149
+   -> C:\Users\monyb\Desktop\anonyme\cours\VBA\demande_forecasting\output\metrics_active_ml.csv
+
+>>> Réentraînement sur tout l'historique et sauvegarde du modèle...
+   Modèle sauvegardé : model_active.joblib (83,610 lignes, jusqu'au 2016-04-24)
+
+LightGBM actif terminé avec succès.
+
+##### 00:49:37 - lancement de train_prophet.py #####
+======================================================================
+ ENTRAÎNEMENT PROPHET (passif + actif)
+======================================================================
+
+>>> Chargement de series_prophet.csv...
+   86,085 lignes, 45 séries
+   Test à partir du 2015-10-28 (180 jours)
+
+>>> Entraînement série par série...
+   [ 1/45] CA_1 / FOODS_3_090  (1s)
+   [ 2/45] CA_1 / FOODS_3_120  (2s)
+   [ 3/45] CA_1 / FOODS_3_252  (3s)
+   [ 4/45] CA_1 / FOODS_3_586  (5s)
+   [ 5/45] CA_1 / FOODS_3_714  (6s)
+   [ 6/45] CA_1 / HOBBIES_1_178  (7s)
+   [ 7/45] CA_1 / HOBBIES_1_256  (8s)
+   [ 8/45] CA_1 / HOBBIES_1_268  (9s)
+   [ 9/45] CA_1 / HOBBIES_1_348  (10s)
+   [10/45] CA_1 / HOBBIES_1_371  (11s)
+   [11/45] CA_1 / HOUSEHOLD_1_110  (12s)
+   [12/45] CA_1 / HOUSEHOLD_1_118  (13s)
+   [13/45] CA_1 / HOUSEHOLD_1_151  (14s)
+   [14/45] CA_1 / HOUSEHOLD_1_334  (15s)
+   [15/45] CA_1 / HOUSEHOLD_1_535  (16s)
+   [16/45] TX_1 / FOODS_3_090  (17s)
+   [17/45] TX_1 / FOODS_3_252  (18s)
+   [18/45] TX_1 / FOODS_3_555  (19s)
+   [19/45] TX_1 / FOODS_3_586  (20s)
+   [20/45] TX_1 / FOODS_3_587  (21s)
+   [21/45] TX_1 / HOBBIES_1_254  (22s)
+   [22/45] TX_1 / HOBBIES_1_256  (23s)
+   [23/45] TX_1 / HOBBIES_1_341  (24s)
+   [24/45] TX_1 / HOBBIES_1_348  (25s)
+   [25/45] TX_1 / HOBBIES_1_371  (26s)
+   [26/45] TX_1 / HOUSEHOLD_1_234  (27s)
+   [27/45] TX_1 / HOUSEHOLD_1_303  (28s)
+   [28/45] TX_1 / HOUSEHOLD_1_334  (30s)
+   [29/45] TX_1 / HOUSEHOLD_1_459  (31s)
+   [30/45] TX_1 / HOUSEHOLD_1_521  (32s)
+   [31/45] WI_1 / FOODS_3_090  (33s)
+   [32/45] WI_1 / FOODS_3_226  (34s)
+   [33/45] WI_1 / FOODS_3_586  (35s)
+   [34/45] WI_1 / FOODS_3_694  (36s)
+   [35/45] WI_1 / FOODS_3_714  (37s)
+   [36/45] WI_1 / HOBBIES_1_067  (38s)
+   [37/45] WI_1 / HOBBIES_1_244  (39s)
+   [38/45] WI_1 / HOBBIES_1_278  (40s)
+   [39/45] WI_1 / HOBBIES_1_370  (41s)
+   [40/45] WI_1 / HOBBIES_1_371  (42s)
+   [41/45] WI_1 / HOUSEHOLD_1_303  (43s)
+   [42/45] WI_1 / HOUSEHOLD_1_327  (44s)
+   [43/45] WI_1 / HOUSEHOLD_1_389  (45s)
+   [44/45] WI_1 / HOUSEHOLD_1_459  (46s)
+   [45/45] WI_1 / HOUSEHOLD_1_521  (47s)
+
+>>> Écriture des prévisions...
+   -> C:\Users\monyb\Desktop\anonyme\cours\VBA\demande_forecasting\output\forecasts_prophet_passive.csv
+   -> C:\Users\monyb\Desktop\anonyme\cours\VBA\demande_forecasting\output\forecasts_prophet_active.csv
+
+>>> Calcul des métriques...
+   Prophet passif :
+store_id    MAE   MAPE    RMSE
+     ALL 7.4307  96.19 11.9308
+    CA_1 8.8656  97.04 14.8167
+    TX_1 7.7959  86.22 12.0351
+    WI_1 5.6306 104.73  7.9152
+   Prophet actif :
+store_id    MAE   MAPE    RMSE
+     ALL 7.3144  95.32 11.6711
+    CA_1 8.8074  95.68 14.6298
+    TX_1 7.6460  87.43 11.6448
+    WI_1 5.4899 102.38  7.6820
+   -> C:\Users\monyb\Desktop\anonyme\cours\VBA\demande_forecasting\output\metrics_prophet.csv
+
+>>> Prévision des 30 prochains jours avec Prophet (tout le dataset)...
+   2016-04-25 -> 2016-05-24
+   -> C:\Users\monyb\Desktop\anonyme\cours\VBA\demande_forecasting\output\forecast_prophet_future_30d.csv
+
+Prophet terminé avec succès.
+
+##### 00:51:16 - lancement de compare_all.py #####
+======================================================================
+ COMPARAISON DE TOUS LES MODÈLES
+======================================================================
+
+>>> Lecture des fichiers de métriques...
+   OK      metrics_passive_ml.csv
+   OK      metrics_active_ml.csv
+   OK      metrics_prophet.csv
+   OK      metrics_monthly.csv
+
+>>> Calcul des métriques par catégorie (depuis les fichiers de prévisions)...
+   4 modèle(s) × 3 catégories
+
+>>> Calcul du WRMSSE (métrique officielle M5, niveau série)...
+   LightGBM (Actif) : WRMSSE = 0.686
+   XGBoost (Passif) : WRMSSE = 0.722
+   Prophet (Actif) : WRMSSE = 0.869
+   Prophet (Passif) : WRMSSE = 0.882
+
+>>> Écriture de metrics_summary.xlsx...
+   -> C:\Users\monyb\Desktop\anonyme\cours\VBA\demande_forecasting\output\metrics_summary.xlsx
+
+>>> Rédaction du rapport...
+RAPPORT DE COMPARAISON DES MODÈLES - M5 Walmart (CA_1, TX_1, WI_1)
+======================================================================
+Période de test : 180 derniers jours. Métrique principale : RMSE.
+MAPE calculée uniquement sur les jours avec ventes > 0 (peu fiable sur les
+séries intermittentes) -> WAPE et WRMSSE sont les métriques relatives de référence.
+
+1. CLASSEMENT GLOBAL
+   1. LightGBM (Actif)       RMSE=9.495  MAE=5.912  WAPE=40.2%  WRMSSE=0.686  MAPE=75.3%
+   2. XGBoost (Passif)       RMSE=9.902  MAE=6.117  WAPE=41.5%  WRMSSE=0.722  MAPE=78.1%
+   3. Prophet (Actif)        RMSE=11.671  MAE=7.314  WAPE=49.7%  WRMSSE=0.869  MAPE=95.3%
+   4. Prophet (Passif)       RMSE=11.931  MAE=7.431  WAPE=50.5%  WRMSSE=0.882  MAPE=96.2%
+
+   -> Modèle gagnant : LightGBM (Actif) (RMSE 9.495).
+      Il devance XGBoost (Passif) de 4.1 % en RMSE.
+
+2. APPORT DES VARIABLES EXTERNES (Passif -> Actif)
+   ML      : l'approche active améliore le RMSE de 4.1 % (9.902 -> 9.495)
+   ML      : l'approche active améliore le MAE de 3.4 % (6.117 -> 5.912)
+   Prophet : l'approche active améliore le RMSE de 2.2 % (11.931 -> 11.671)
+   Prophet : l'approche active améliore le MAE de 1.6 % (7.431 -> 7.314)
+
+3. MACHINE LEARNING vs PROPHET
+   Le meilleur ML (LightGBM (Actif)) bat le meilleur Prophet (Prophet (Actif)) de 18.6 % en RMSE.
+
+4. MEILLEUR MODÈLE PAR MAGASIN
+   CA_1 : LightGBM (Actif)       RMSE=12.019 (pire : Prophet (Passif), RMSE=14.817)
+   TX_1 : LightGBM (Actif)       RMSE=9.139 (pire : Prophet (Passif), RMSE=12.035)
+   WI_1 : LightGBM (Actif)       RMSE=6.515 (pire : Prophet (Passif), RMSE=7.915)
+
+5. NOMBRE DE SÉRIES (magasin × produit) GAGNÉES PAR MODÈLE
+   LightGBM (Actif)       36 série(s)
+   XGBoost (Passif)       4 série(s)
+   Prophet (Actif)        3 série(s)
+   Prophet (Passif)       2 série(s)
+
+6. MEILLEUR MODÈLE PAR CATÉGORIE
+   FOODS     : LightGBM (Actif)       RMSE=13.365  WAPE=29.1%  WRMSSE=0.683
+   HOBBIES   : LightGBM (Actif)       RMSE=8.185  WAPE=80.2%  WRMSSE=0.687
+   HOUSEHOLD : LightGBM (Actif)       RMSE=4.983  WAPE=49.3%  WRMSSE=0.703
+
+7. WRMSSE (métrique officielle M5, niveau série)
+   LightGBM (Actif)       WRMSSE=0.686 -> bat le naïf 'veille' (pondéré par le CA)
+   XGBoost (Passif)       WRMSSE=0.722 -> bat le naïf 'veille' (pondéré par le CA)
+   Prophet (Actif)        WRMSSE=0.869 -> bat le naïf 'veille' (pondéré par le CA)
+   Prophet (Passif)       WRMSSE=0.882 -> bat le naïf 'veille' (pondéré par le CA)
+   Rappel : le gagnant du concours M5 obtenait ~0.52 sur les 12 niveaux d'agrégation (ici : niveau série seul, horizon 180 j -> non comparable directement).
+
+   -> C:\Users\monyb\Desktop\anonyme\cours\VBA\demande_forecasting\output\rapport_metriques.txt
+
+>>> Écriture de metrics_all.csv...
+   244 lignes -> C:\Users\monyb\Desktop\anonyme\cours\VBA\demande_forecasting\output\metrics_all.csv
+
+>>> Identification du modèle gagnant...
+   -> winner.json : LightGBM (Actif) (RMSE=9.4945, fichier model_active.joblib)
+
+Comparaison terminée avec succès.
+
+##### 00:51:18 - lancement de predict_next_30_days.py #####
+=================================================================
+  PRÉVISION J+1..J+30 — MODÈLE GAGNANT
+=================================================================
+
+  Gagnant : LightGBM (Actif)  RMSE=9.4945
+  Classement établi le : 2026-10-20 00:51
+
+>>> Chargement de series_long.csv...
+  Dernière date connue : 2016-04-24
+  Prévision : 2016-04-25 -> 2016-05-24
+
+>>> Chargement du modèle LightGBM (Actif)...
+
+>>> Prévision directe J+1..J+30 (sans récursivité)...
+
+  1350 lignes (45 séries × 30 jours)
+  -> C:\Users\monyb\Desktop\anonyme\cours\VBA\demande_forecasting\output\forecast_next_30_days.csv
+
+  Total unités prévues par store :
+store_id
+CA_1    8732
+TX_1    7780
+WI_1    5277
+
+  Terminé avec succès.
+
+##### 00:51:20 - lancement de generate_workbook.py #####
+======================================================================
+ GÉNÉRATION DU CLASSEUR Application_Prevision.xlsx
+======================================================================
+
+>>> Lecture des sorties du pipeline...
+   series_long     :  86,085 lignes
+   prévisions 30 j :   1,350 lignes
+   métriques       :     244 lignes
+   mensuel         :      45 lignes
+   produits        :      45 lignes
+   test            :  32,400 lignes
+
+>>> Écriture du classeur...
+   -> C:\Users\monyb\Desktop\anonyme\cours\VBA\demande_forecasting\output\Application_Prevision.xlsx (3.6 Mo)
+
+>>> Copie du code VBA (ANSI + CRLF)...
+   -> output/INSTRUCTIONS_IMPORT.txt
+   -> output/ModuleApp.bas
+   -> output/forms/frmGestionProduits.frm
+   -> output/forms/frmLancement.frm
+   -> output/forms/frmMetriques.frm
+   -> output/forms/frmPrevisionMensuelle.frm
+
+Classeur généré avec succès (00:51:39).
